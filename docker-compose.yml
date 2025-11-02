@@ -1,0 +1,74 @@
+services:
+  kafka:
+    image: apache/kafka:4.1.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_NUM_PARTITIONS: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+
+#   db:
+#     image: mariadb:latest
+#     container_name: mission-db
+#     restart: always
+#     environment:
+#       MARIADB_ROOT_PASSWORD: root
+#       MARIADB_DATABASE: missions
+#     ports:
+#       - "3306:3306"
+#     volumes:
+#       - db_data:/var/lib/mysql
+
+#   commander:
+#     build:
+#       context: .
+#       dockerfile: commander/Dockerfile
+#     container_name: commander
+#     depends_on:
+#       - kafka
+#       - db
+#     environment:
+#       - DB_DSN=root:root@tcp(db:3306)/missions
+#       - KAFKA_BROKER=kafka:9092
+#     ports:
+#       - "8080:8080"
+
+#   soldier:
+#     build:
+#       context: .
+#       dockerfile: soldier/Dockerfile
+#     container_name: soldier
+#     depends_on:
+#       - kafka
+#       - commander
+#     environment:
+#       - COMMANDER_URL=http://commander:8080
+#       - KAFKA_BROKER=kafka:9092
+
+volumes:
+  db_data:
+  kafka_data:
